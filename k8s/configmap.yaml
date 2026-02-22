@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: url-shortener-config
+data:
+  DATABASE_URL: "postgresql://user:password@postgres:5432/urlshortener"
+
