@@ -12,6 +12,7 @@ spec:
       labels:
         app: url-shortener
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: url-shortener
           image: url-shrotener-platform-app:latest
@@ -19,8 +20,22 @@ spec:
           ports:
             - containerPort: 8000
           envFrom:
-            - configMapRef:
-                name: url-shortener-config
+            - secretRef:
+                name: url-shortener-secrets
+
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 10"]
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+
           livenessProbe:
             httpGet:
               path: /live
@@ -34,4 +49,3 @@ spec:
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 5
-
