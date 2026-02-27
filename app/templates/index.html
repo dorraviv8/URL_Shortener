@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>URL Shortener</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 400px;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .result {
+            margin-top: 20px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>URL Shortener</h2>
+        <form method="post" action="/shorten-ui">
+            <input type="text" name="url" placeholder="Enter URL..." required>
+            <button type="submit">Shorten</button>
+        </form>
+
+        {% if short_url %}
+        <div class="result">
+            <p>Your short URL:</p>
+            <a href="{{ short_url }}">{{ short_url }}</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
+
