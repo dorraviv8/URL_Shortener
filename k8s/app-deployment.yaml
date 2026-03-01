@@ -21,7 +21,7 @@ spec:
             - containerPort: 8000
           envFrom:
             - secretRef:
-                name: url-shortener-secrets
+                name: db-secret
 
           lifecycle:
             preStop:
