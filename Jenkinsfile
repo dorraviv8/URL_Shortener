@@ -1,29 +1,36 @@
 pipeline {
-    agent {
-        kubernetes {
-            label 'kaniko'
-            defaultContainer 'kaniko'
-        }
+  agent {
+    kubernetes {
+      inheritFrom 'kaniko'
+      defaultContainer 'jnlp'
+    }
+  }
+
+  environment {
+    IMAGE = "dorraviv/url-shortener-platform"
+    TAG   = "${env.BUILD_NUMBER}"
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
     }
 
-    stages {
-
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
+    stage('Build & Push (Kaniko)') {
+      steps {
+        container('kaniko') {
+          sh '''
+            /kaniko/executor \
+              --dockerfile=Dockerfile \
+              --context=$PWD \
+              --destination=${IMAGE}:${TAG} \
+              --destination=${IMAGE}:latest \
+              --verbosity=info
+          '''
         }
-
-        stage('Build & Push Image') {
-            steps {
-                sh '''
-                /kaniko/executor \
-                  --dockerfile=Dockerfile \
-                  --context=$(pwd) \
-                  --destination=dorraviv/url-shortener-platform:latest \
-                  --verbosity=info
-                '''
-            }
-        }
+      }
     }
+  }
 }
