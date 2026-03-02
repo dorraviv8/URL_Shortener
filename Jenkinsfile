@@ -1,24 +1,28 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            label 'kaniko'
+            defaultContainer 'kaniko'
+        }
+    }
 
     stages {
+
         stage('Checkout') {
             steps {
-                echo 'Checking out code...'
                 checkout scm
             }
         }
 
-        stage('Build') {
+        stage('Build & Push Image') {
             steps {
-                echo 'Building Docker image...'
-                sh 'docker version'
-            }
-        }
-
-        stage('Push') {
-            steps {
-                echo 'Pushing Docker image...'
+                sh '''
+                /kaniko/executor \
+                  --dockerfile=Dockerfile \
+                  --context=$(pwd) \
+                  --destination=dorraviv/url-shortener-platform:latest \
+                  --verbosity=info
+                '''
             }
         }
     }
