@@ -21,11 +21,13 @@ pipeline {
 
     stage('Run Tests') {
       steps {
-        sh '''
-          pip install -r app/requirements.txt
-          pip install pytest httpx
-          pytest -v
-        '''
+        container('python') {
+          sh '''
+            pip install -r app/requirements.txt
+            pip install pytest httpx
+            pytest -v
+          '''
+        }
       }
     }
 
