@@ -6,8 +6,8 @@ import secrets
 from sqlalchemy import text
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, Counter, Histogram
 
-from database import engine, SessionLocal
-from models import Base, URL
+from app.database import engine, SessionLocal
+from app.models import Base, URL
 
 
 # -------------------------
