@@ -14,14 +14,16 @@ from app.models import Base, URL
 # App init
 # -------------------------
 app = FastAPI(title="URL Shortener", version="0.2.0")
-Base.metadata.create_all(bind=engine)
-templates = Jinja2Templates(directory="templates")
 
-# (legacy) In-memory store from early stage
-url_store: dict[str, str] = {}
+# Create tables only if DB engine exists
+if engine:
+    Base.metadata.create_all(bind=engine)
+
+templates = Jinja2Templates(directory="app/templates")
+
 
 # -------------------------
-# Prometheus custom metrics (Business metrics)
+# Prometheus custom metrics
 # -------------------------
 URL_SHORTENED_TOTAL = Counter(
     "url_shortened_total",
@@ -32,6 +34,7 @@ URL_REDIRECT_TOTAL = Counter(
     "url_redirect_total",
     "Total number of redirects served"
 )
+
 http_requests_total = Counter(
     "http_requests_total",
     "Total HTTP requests",
@@ -43,6 +46,7 @@ http_request_duration_seconds = Histogram(
     "HTTP request duration in seconds",
     ["method", "path"]
 )
+
 
 # -------------------------
 # HTTP Metrics Middleware
@@ -68,13 +72,16 @@ async def metrics_middleware(request: Request, call_next):
 
     return response
 
+
 # -------------------------
 # 1️⃣ Home Page (UI)
 # -------------------------
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    """מחזיר את דף הבית עם הטופס."""
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request}
+    )
 
 
 # -------------------------
@@ -82,28 +89,34 @@ def home(request: Request):
 # -------------------------
 @app.post("/shorten-ui", response_class=HTMLResponse)
 def shorten_ui(request: Request, url: str = Form(...)):
+
+    if not SessionLocal:
+        raise HTTPException(status_code=500, detail="Database not configured")
+
     db = SessionLocal()
+
     try:
-        # Generate unique code
         code = secrets.token_urlsafe(5)
+
         while db.query(URL).filter(URL.code == code).first():
             code = secrets.token_urlsafe(5)
 
-        # Persist
         db.add(URL(code=code, original_url=url))
         db.commit()
 
-        # Business metric
         URL_SHORTENED_TOTAL.inc()
 
-        # Build short URL using the request's base URL
         base_url = str(request.base_url).rstrip("/")
         short_url = f"{base_url}/{code}"
 
         return templates.TemplateResponse(
             "index.html",
-            {"request": request, "short_url": short_url},
+            {
+                "request": request,
+                "short_url": short_url
+            }
         )
+
     finally:
         db.close()
 
@@ -113,12 +126,19 @@ def shorten_ui(request: Request, url: str = Form(...)):
 # -------------------------
 @app.get("/ready")
 def readiness():
+
+    if not SessionLocal:
+        raise HTTPException(status_code=500, detail="Database not configured")
+
     db = SessionLocal()
+
     try:
         db.execute(text("SELECT 1"))
         return {"status": "ok"}
+
     except Exception:
         raise HTTPException(status_code=500, detail="Database not available")
+
     finally:
         db.close()
 
@@ -133,23 +153,35 @@ def liveness():
 # -------------------------
 @app.get("/metrics")
 def metrics():
-    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    return Response(
+        content=generate_latest(),
+        media_type=CONTENT_TYPE_LATEST
+    )
 
 
 # -------------------------
-# 5️⃣ Redirect Route (חייב להיות אחרון!)
+# 5️⃣ Redirect Route (must be last)
 # -------------------------
 @app.get("/{code}")
 def redirect(code: str):
+
+    if not SessionLocal:
+        raise HTTPException(status_code=500, detail="Database not configured")
+
     db = SessionLocal()
+
     try:
         url_entry = db.query(URL).filter(URL.code == code).first()
+
         if not url_entry:
             raise HTTPException(status_code=404, detail="Code not found")
 
-        # Business metric
         URL_REDIRECT_TOTAL.inc()
 
-        return RedirectResponse(url=url_entry.original_url, status_code=307)
+        return RedirectResponse(
+            url=url_entry.original_url,
+            status_code=307
+        )
+
     finally:
         db.close()
