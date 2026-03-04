@@ -24,7 +24,7 @@ pipeline {
         container('python') {
           sh '''
             pip install -r app/requirements.txt
-            pip install pytest httpx
+            export PYTHONPATH=$PWD
             pytest -v
           '''
         }
