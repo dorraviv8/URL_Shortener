@@ -12,9 +12,20 @@ pipeline {
   }
 
   stages {
+
     stage('Checkout') {
       steps {
         checkout scm
+      }
+    }
+
+    stage('Run Tests') {
+      steps {
+        sh '''
+          pip install -r app/requirements.txt
+          pip install pytest httpx
+          pytest -v
+        '''
       }
     }
 
@@ -32,5 +43,6 @@ pipeline {
         }
       }
     }
+
   }
 }
