@@ -11,8 +11,8 @@ from prometheus_client import (
     Histogram,
 )
 
-from app.database import engine, SessionLocal
-from app.models import Base, URL
+from database import engine, SessionLocal
+from models import Base, URL
 
 
 # -------------------------
