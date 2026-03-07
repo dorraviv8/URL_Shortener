@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String
 from app.database import Base
 
+
 class URL(Base):
     __tablename__ = "urls"
 
