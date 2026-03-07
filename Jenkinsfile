@@ -58,21 +58,21 @@ pipeline {
     }
 
     stage('Deploy to Kubernetes') {
-  when {
-    branch 'main'
-  }
+      when {
+        branch 'main'
+      }
+      steps {
+        container('python') {
+          sh '''
+            kubectl set image deployment/url-shortener \
+            url-shortener=${IMAGE}:${TAG} \
+            -n default
 
-  steps {
-    container('python') {
-      sh '''
-        kubectl set image deployment/url-shortener \
-        url-shortener=${IMAGE}:${TAG} \
-        -n default
-
-        kubectl rollout status deployment/url-shortener -n default
-      '''
+            kubectl rollout status deployment/url-shortener -n default
+          '''
+        }
+      }
     }
+
   }
 }
-
- 
