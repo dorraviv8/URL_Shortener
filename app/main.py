@@ -4,7 +4,12 @@ from fastapi.templating import Jinja2Templates
 import time
 import secrets
 from sqlalchemy import text
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, Counter, Histogram
+from prometheus_client import (
+    generate_latest,
+    CONTENT_TYPE_LATEST,
+    Counter,
+    Histogram,
+)
 
 from app.database import engine, SessionLocal
 from app.models import Base, URL
