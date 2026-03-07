@@ -19,6 +19,17 @@ pipeline {
       }
     }
 
+    stage('Lint') {
+      steps {
+        container('python') {
+          sh '''
+            pip install -r app/requirements.txt
+            flake8 app
+          '''
+        }
+      }
+    }
+
     stage('Run Tests') {
       steps {
         container('python') {
@@ -41,6 +52,21 @@ pipeline {
               --destination=${IMAGE}:${TAG} \
               --destination=${IMAGE}:latest \
               --verbosity=info
+          '''
+        }
+      }
+    }
+
+    stage('Deploy to Kubernetes') {
+      when {
+        branch 'main'
+      }
+      steps {
+        container('kaniko') {
+          sh '''
+            kubectl set image deployment/url-shortener \
+            app=${IMAGE}:${TAG} \
+            -n default
           '''
         }
       }
