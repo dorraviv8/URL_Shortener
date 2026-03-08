@@ -15,7 +15,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: url-shortener
-          image: dorraviv/url-shortener-platform:latest
+          image: dorraviv/url-shortener-platform:1
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
