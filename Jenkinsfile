@@ -59,14 +59,14 @@ pipeline {
 
     stage('Deploy to Kubernetes') {
       steps {
-        container('python') {
-          sh '''
+        container('kaniko') {
+          sh """
             kubectl set image deployment/url-shortener \
             url-shortener=${IMAGE}:${TAG} \
             -n default
 
-            kubectl rollout status deployment/url-shortener -n default
-          '''
+            kubectl rollout status deployment/url-shortener
+          """
         }
       }
     }
