@@ -58,9 +58,6 @@ pipeline {
     }
 
     stage('Deploy to Kubernetes') {
-      when {
-        branch 'main'
-      }
       steps {
         container('python') {
           sh '''
