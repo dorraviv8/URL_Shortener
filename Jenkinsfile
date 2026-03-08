@@ -35,7 +35,7 @@ pipeline {
         container('python') {
           sh '''
             pip install -r app/requirements.txt
-            export PYTHONPATH=$PWD
+            export PYTHONPATH=$WORKSPACE/app
             pytest -v
           '''
         }
