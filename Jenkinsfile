@@ -8,14 +8,12 @@ spec:
   containers:
   - name: python
     image: python:3.11
-    command:
-    - cat
+    command: ['cat']
     tty: true
 
   - name: kubectl
     image: bitnami/kubectl:latest
-    command:
-    - cat
+    command: ['cat']
     tty: true
 """
     }
@@ -66,7 +64,6 @@ spec:
               --dockerfile=Dockerfile \
               --context=$PWD \
               --destination=${IMAGE}:${TAG} \
-              --destination=${IMAGE}:latest \
               --verbosity=info
           '''
         }
@@ -77,8 +74,10 @@ spec:
       steps {
         container('kubectl') {
           sh '''
-            kubectl apply -f k8s/
-            kubectl rollout restart deployment/url-shortener
+            kubectl set image deployment/url-shortener \
+            url-shortener=${IMAGE}:${TAG} \
+            -n default
+
             kubectl rollout status deployment/url-shortener
           '''
         }
