@@ -78,9 +78,7 @@ spec:
         container('kubectl') {
           sh '''
             kubectl apply -f k8s/
-
             kubectl rollout restart deployment/url-shortener
-
             kubectl rollout status deployment/url-shortener
           '''
         }
