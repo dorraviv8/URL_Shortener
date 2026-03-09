@@ -3,6 +3,21 @@ pipeline {
     kubernetes {
       inheritFrom 'kaniko'
       defaultContainer 'jnlp'
+      yaml """
+spec:
+  containers:
+  - name: python
+    image: python:3.11
+    command:
+    - cat
+    tty: true
+
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command:
+    - cat
+    tty: true
+"""
     }
   }
 
@@ -24,6 +39,7 @@ pipeline {
         container('python') {
           sh '''
             pip install -r app/requirements.txt
+            pip install flake8
             flake8 app
           '''
         }
@@ -35,14 +51,14 @@ pipeline {
         container('python') {
           sh '''
             pip install -r app/requirements.txt
-            export PYTHONPATH=$WORKSPACE/app
+            export PYTHONPATH=$PWD/app
             pytest -v
           '''
         }
       }
     }
 
-    stage('Build & Push (Kaniko)') {
+    stage('Build & Push Image') {
       steps {
         container('kaniko') {
           sh '''
@@ -59,14 +75,14 @@ pipeline {
 
     stage('Deploy to Kubernetes') {
       steps {
-        container('kaniko') {
-          sh """
-            kubectl set image deployment/url-shortener \
-            url-shortener=${IMAGE}:${TAG} \
-            -n default
+        container('kubectl') {
+          sh '''
+            kubectl apply -f k8s/
+
+            kubectl rollout restart deployment/url-shortener
 
             kubectl rollout status deployment/url-shortener
-          """
+          '''
         }
       }
     }
