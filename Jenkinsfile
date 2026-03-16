@@ -19,7 +19,7 @@ spec:
           mountPath: /home/jenkins/agent
 
     - name: kubectl
-      image: bitnami/kubectl:latest
+      image: alpine/k8s:1.30.2
       command:
         - cat
       tty: true
