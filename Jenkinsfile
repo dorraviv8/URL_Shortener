@@ -95,9 +95,9 @@ spec:
           sh '''
             kubectl apply -f k8s/
             kubectl set image deployment/url-shortener \
-              url-shortener=${IMAGE}:${TAG}
+              url-shortener=${IMAGE}:${TAG} -n default
 
-            kubectl rollout status deployment/url-shortener --timeout=120s
+            kubectl rollout status deployment/url-shortener -n default --timeout=120s
           '''
         }
       }

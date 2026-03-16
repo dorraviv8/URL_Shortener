@@ -2,6 +2,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: url-shortener-pdb
+  namespace: default
 spec:
   minAvailable: 1
   selector:
