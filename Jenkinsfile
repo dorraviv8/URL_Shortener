@@ -94,7 +94,9 @@ spec:
         container('kubectl') {
           sh '''
             kubectl apply -f k8s/
-            kubectl rollout restart deployment/url-shortener
+            kubectl set image deployment/url-shortener \
+            url-shortener=${IMAGE}:${TAG}
+
             kubectl rollout status deployment/url-shortener --timeout=120s
           '''
         }
