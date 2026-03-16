@@ -52,6 +52,7 @@ spec:
               --dockerfile=Dockerfile \
               --context=$PWD \
               --destination=${IMAGE}:${TAG} \
+              --destination=${IMAGE}:latest
               --verbosity=info
           '''
         }
@@ -63,10 +64,7 @@ spec:
         container('kubectl') {
           sh '''
             kubectl apply -f k8s/
-
-            kubectl set image deployment/url-shortener \
-            url-shortener=${IMAGE}:${TAG}
-
+            kubectl rollout restart deployment/url-shortener
             kubectl rollout status deployment/url-shortener
           '''
         }
