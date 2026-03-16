@@ -17,7 +17,12 @@ if not DATABASE_URL and POSTGRES_USER and POSTGRES_PASSWORD and POSTGRES_DB:
         f"@{DB_HOST}:{DB_PORT}/{POSTGRES_DB}"
     )
 
-engine = create_engine(DATABASE_URL) if DATABASE_URL else None
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True,
+) if DATABASE_URL else None
 
 SessionLocal = sessionmaker(
     autocommit=False,

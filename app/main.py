@@ -84,10 +84,7 @@ async def metrics_middleware(request: Request, call_next):
 # -------------------------
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse(
-        "index.html",
-        {"request": request}
-    )
+    return templates.TemplateResponse(request, "index.html")
 
 
 # -------------------------
@@ -116,11 +113,9 @@ def shorten_ui(request: Request, url: str = Form(...)):
         short_url = f"{base_url}/{code}"
 
         return templates.TemplateResponse(
+            request,
             "index.html",
-            {
-                "request": request,
-                "short_url": short_url
-            }
+            {"short_url": short_url}
         )
 
     finally:

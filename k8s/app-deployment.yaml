@@ -23,6 +23,8 @@ spec:
           envFrom:
             - secretRef:
                 name: db-secret
+            - configMapRef:
+                name: url-shortener-config
 
           lifecycle:
             preStop:

@@ -80,7 +80,7 @@ spec:
           sh '''
             /kaniko/executor \
               --dockerfile=Dockerfile \
-              --context=$PWD \
+              --context=dir://$PWD \
               --destination=${IMAGE}:${TAG} \
               --destination=${IMAGE}:latest \
               --verbosity=info
@@ -95,12 +95,21 @@ spec:
           sh '''
             kubectl apply -f k8s/
             kubectl set image deployment/url-shortener \
-            url-shortener=${IMAGE}:${TAG}
+              url-shortener=${IMAGE}:${TAG}
 
             kubectl rollout status deployment/url-shortener --timeout=120s
           '''
         }
       }
+    }
+  }
+
+  post {
+    success {
+      echo "Pipeline succeeded: ${IMAGE}:${TAG} deployed"
+    }
+    failure {
+      echo "Pipeline failed on branch ${env.BRANCH_NAME}, build #${env.BUILD_NUMBER}"
     }
   }
 }
