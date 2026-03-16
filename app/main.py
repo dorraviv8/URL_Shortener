@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse, HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 import time
 import secrets
+from pathlib import Path
 from sqlalchemy import text
 from prometheus_client import (
     generate_latest,
@@ -11,8 +12,8 @@ from prometheus_client import (
     Histogram,
 )
 
-from database import engine, SessionLocal
-from models import Base, URL
+from app.database import engine, SessionLocal
+from app.models import Base, URL
 
 
 # -------------------------
@@ -24,8 +25,8 @@ app = FastAPI(title="URL Shortener", version="0.2.0")
 if engine:
     Base.metadata.create_all(bind=engine)
 
-templates = Jinja2Templates(directory="app/templates")
-
+BASE_DIR = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 # -------------------------
 # Prometheus custom metrics

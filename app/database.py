@@ -9,9 +9,9 @@ POSTGRES_DB = os.getenv("POSTGRES_DB")
 DB_HOST = os.getenv("DB_HOST", "postgres")
 DB_PORT = os.getenv("DB_PORT", "5432")
 
-DATABASE_URL = None
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-if POSTGRES_USER and POSTGRES_PASSWORD and POSTGRES_DB:
+if not DATABASE_URL and POSTGRES_USER and POSTGRES_PASSWORD and POSTGRES_DB:
     DATABASE_URL = (
         f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}"
         f"@{DB_HOST}:{DB_PORT}/{POSTGRES_DB}"

@@ -32,24 +32,12 @@ spec:
       }
     }
 
-    stage('Lint') {
+    stage('Quality Checks') {
       steps {
         container('python') {
           sh '''
-            pip install -r app/requirements.txt
-            pip install flake8
+            pip install -r requirements-dev.txt
             flake8 app
-          '''
-        }
-      }
-    }
-
-    stage('Run Tests') {
-      steps {
-        container('python') {
-          sh '''
-            pip install -r app/requirements.txt
-            export PYTHONPATH=$PWD/app
             pytest -v
           '''
         }
@@ -74,9 +62,10 @@ spec:
       steps {
         container('kubectl') {
           sh '''
+            kubectl apply -f k8s/
+
             kubectl set image deployment/url-shortener \
-            url-shortener=${IMAGE}:${TAG} \
-            -n default
+            url-shortener=${IMAGE}:${TAG}
 
             kubectl rollout status deployment/url-shortener
           '''
