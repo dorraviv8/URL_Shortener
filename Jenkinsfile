@@ -95,7 +95,9 @@ spec:
           sh '''
             # Apply all manifests except secrets — secrets are managed manually
             # to prevent overwriting live credentials with placeholder values.
-            find k8s/ -maxdepth 1 -name '*.yaml' ! -name 'secret*' | xargs kubectl apply -f
+            for f in $(find k8s/ -maxdepth 1 -name '*.yaml' ! -name 'secret*'); do
+              kubectl apply -f "$f"
+            done
 
             kubectl set image deployment/url-shortener \
               url-shortener=${IMAGE}:${TAG} -n default
