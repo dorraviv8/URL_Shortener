@@ -6,6 +6,10 @@ rules:
   - apiGroups: [""]
     resources: ["services", "secrets", "configmaps", "persistentvolumeclaims"]
     verbs: ["get", "list", "create", "update", "patch", "apply"]
+  - apiGroups: [""]
+    # pods + events: required for `kubectl rollout status` to watch pod readiness
+    resources: ["pods", "events"]
+    verbs: ["get", "list", "watch"]
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets"]
     # watch is required for `kubectl rollout status` used in the pipeline

@@ -93,11 +93,14 @@ spec:
       steps {
         container('kubectl') {
           sh '''
-            kubectl apply -f k8s/
+            # Apply all manifests except secrets — secrets are managed manually
+            # to prevent overwriting live credentials with placeholder values.
+            find k8s/ -maxdepth 1 -name '*.yaml' ! -name 'secret*' | xargs kubectl apply -f
+
             kubectl set image deployment/url-shortener \
               url-shortener=${IMAGE}:${TAG} -n default
 
-            kubectl rollout status deployment/url-shortener -n default --timeout=120s
+            kubectl rollout status deployment/url-shortener -n default --timeout=300s
           '''
         }
       }
@@ -110,6 +113,12 @@ spec:
     }
     failure {
       echo "Pipeline failed on branch ${env.BRANCH_NAME}, build #${env.BUILD_NUMBER}"
+      container('kubectl') {
+        sh '''
+          echo "Rolling back deployment to previous version..."
+          kubectl rollout undo deployment/url-shortener -n default
+        '''
+      }
     }
   }
 }
