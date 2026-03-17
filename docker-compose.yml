@@ -10,6 +10,14 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # pg_isready exits 0 only when the server is ready to accept connections,
+    # ensuring the app never starts against a half-initialised database.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d urlshortener"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   app:
     build: .
@@ -17,7 +25,8 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/urlshortener
 

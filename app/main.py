@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.responses import RedirectResponse, HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 import time
 import secrets
 from pathlib import Path
+from urllib.parse import urlparse
 from sqlalchemy import text
 from prometheus_client import (
     generate_latest,
@@ -87,11 +90,33 @@ def home(request: Request):
     return templates.TemplateResponse(request, "index.html")
 
 
+def _validate_url(url: str) -> str | None:
+    """Return an error message if the URL is invalid, else None."""
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return "Invalid URL format."
+    if parsed.scheme not in ("http", "https"):
+        return "Only http:// and https:// URLs are accepted."
+    if not parsed.netloc:
+        return "URL must include a valid hostname."
+    return None
+
+
 # -------------------------
 # 2️⃣ Shorten via UI Form
 # -------------------------
 @app.post("/shorten-ui", response_class=HTMLResponse)
 def shorten_ui(request: Request, url: str = Form(...)):
+
+    error = _validate_url(url)
+    if error:
+        return templates.TemplateResponse(
+            request,
+            "index.html",
+            {"error": error},
+            status_code=400,
+        )
 
     if not SessionLocal:
         raise HTTPException(status_code=500, detail="Database not configured")

@@ -20,6 +20,9 @@ app/.idea/
 # OS
 .DS_Store
 
-# Env / secrets (אם יהיו)
+# Env / secrets
 .env
 *.env
+
+# Kubernetes secrets — use k8s/secret.example.yaml as a template
+k8s/secret.yaml

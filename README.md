@@ -76,14 +76,12 @@ python3.11 -m venv venv
 source venv/bin/activate
 pip install -r requirements-dev.txt
 
-export POSTGRES_USER=user
-export POSTGRES_PASSWORD=password
-export POSTGRES_DB=urlshortener
-export DB_HOST=localhost
-export DB_PORT=5432
+export DATABASE_URL=postgresql://user:password@localhost:5432/urlshortener
 
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+Alternatively, individual vars are also supported: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `DB_HOST`, `DB_PORT`.
 
 ## Running Tests
 
@@ -92,7 +90,7 @@ pip install -r requirements-dev.txt
 pytest -v
 ```
 
-Tests use SQLite and cover: liveness, readiness, home page, URL shortening, redirect, 404, and metrics endpoints.
+Tests use SQLite (via `DATABASE_URL=sqlite:///./test.db` set in `conftest.py`) and cover: liveness, readiness, home page, URL shortening, redirect, 404, and metrics endpoints.
 
 ## API Endpoints
 
@@ -150,8 +148,8 @@ kubectl apply -f k8s/
 
 The app exposes Prometheus metrics at `/metrics`:
 
-- `url_shortener_urls_created_total` — total URLs shortened
-- `url_shortener_redirects_total` — total redirects served
+- `url_shortened_total` — total URLs shortened
+- `url_redirect_total` — total redirects served
 - `http_requests_total` — request count by method/path/status
 - `http_request_duration_seconds` — request latency histogram
 

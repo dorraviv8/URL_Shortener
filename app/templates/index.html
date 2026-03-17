@@ -46,6 +46,15 @@
             margin-top: 20px;
             word-break: break-all;
         }
+
+        .error {
+            margin-top: 20px;
+            color: #c0392b;
+            background-color: #fdecea;
+            border: 1px solid #e74c3c;
+            border-radius: 5px;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
@@ -55,6 +64,12 @@
             <input type="text" name="url" placeholder="Enter URL..." required>
             <button type="submit">Shorten</button>
         </form>
+
+        {% if error %}
+        <div class="error">
+            <strong>Error:</strong> {{ error }}
+        </div>
+        {% endif %}
 
         {% if short_url %}
         <div class="result">
