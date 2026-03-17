@@ -5,6 +5,11 @@ metadata:
   namespace: default
 spec:
   replicas: 1
+  # Recreate ensures the old pod is terminated before the new one starts.
+  # This is required because the postgres-pvc uses ReadWriteOnce access mode,
+  # meaning only one pod can mount the volume at a time.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: postgres
@@ -36,6 +41,26 @@ spec:
                 secretKeyRef:
                   name: db-secret
                   key: POSTGRES_DB
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
 
           volumeMounts:
             - name: postgres-storage

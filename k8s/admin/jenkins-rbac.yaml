@@ -7,8 +7,9 @@ rules:
     resources: ["services", "secrets", "configmaps", "persistentvolumeclaims"]
     verbs: ["get", "list", "create", "update", "patch", "apply"]
   - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["get", "list", "create", "update", "patch", "apply"]
+    resources: ["deployments", "replicasets"]
+    # watch is required for `kubectl rollout status` used in the pipeline
+    verbs: ["get", "list", "watch", "create", "update", "patch", "apply"]
   - apiGroups: ["autoscaling"]
     resources: ["horizontalpodautoscalers"]
     verbs: ["get", "list", "create", "update", "patch", "apply"]

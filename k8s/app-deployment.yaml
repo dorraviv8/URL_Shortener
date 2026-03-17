@@ -4,7 +4,8 @@ metadata:
   name: url-shortener
   namespace: default
 spec:
-  replicas: 1
+  # Replica count is intentionally omitted — it is managed by app-hpa.yaml.
+  # Setting it here would cause the Deployment and HPA to fight on every apply.
   selector:
     matchLabels:
       app: url-shortener
