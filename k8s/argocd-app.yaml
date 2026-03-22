@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: url-shortener
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: app=dorraviv/url-shortener-platform
+    argocd-image-updater.argoproj.io/app.update-strategy: latest
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/write-back-target: "kustomization"
+    argocd-image-updater.argoproj.io/git-branch: main
+    argocd-image-updater.argoproj.io/git-credentials-secret: git-creds
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/dorraviv8/URL_Shortener
+    targetRevision: main
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
