@@ -1,6 +1,6 @@
 # URL Shortener Platform
 
-A production-ready URL shortening service built with FastAPI, PostgreSQL, and deployed on Kubernetes with a full CI/CD pipeline via Jenkins.
+A production-ready URL shortening service built with FastAPI, PostgreSQL, and deployed on Kubernetes with a full CI/CD pipeline using Jenkins and ArgoCD.
 
 ## Features
 
@@ -22,7 +22,8 @@ A production-ready URL shortening service built with FastAPI, PostgreSQL, and de
 | Templating | Jinja2 3.1.4 |
 | Monitoring | Prometheus Client 0.20.0 |
 | Container Build | Kaniko |
-| CI/CD | Jenkins (Kubernetes agents) |
+| CI | Jenkins (Kubernetes agents) |
+| CD | ArgoCD + ArgoCD Image Updater |
 | Orchestration | Kubernetes |
 
 ## Project Structure
@@ -50,8 +51,9 @@ A production-ready URL shortening service built with FastAPI, PostgreSQL, and de
 │   ├── postgres-service.yaml
 │   ├── postgres-pvc.yaml
 │   ├── url-shortener-servicemonitor.yaml
+│   ├── argocd-app.yaml          # ArgoCD Application definition
 │   └── admin/
-│       └── jenkins-rbac.yaml   # Apply once by cluster admin
+│       └── jenkins-rbac.yaml    # Apply once by cluster admin
 ├── Dockerfile
 ├── docker-compose.yml
 ├── Jenkinsfile
@@ -105,12 +107,26 @@ Tests use SQLite (via `DATABASE_URL=sqlite:///./test.db` set in `conftest.py`) a
 
 ## CI/CD Pipeline
 
-The Jenkinsfile defines a 4-stage pipeline using Kubernetes pod agents:
+The project uses a split CI/CD model:
+
+### CI — Jenkins
+
+The Jenkinsfile defines a 3-stage pipeline using Kubernetes pod agents:
 
 1. **Checkout** — pulls code from GitHub
 2. **Quality Checks** — runs `flake8` and `pytest`
 3. **Build & Push Image** — builds with Kaniko, pushes to Docker Hub as `dorraviv/url-shortener-platform:{BUILD_NUMBER}` and `:latest`
-4. **Deploy to Kubernetes** — applies all manifests in `k8s/`, updates the deployment image, waits for rollout
+
+Jenkins is responsible for code quality and image delivery only. It does not touch the cluster.
+
+### CD — ArgoCD + Image Updater
+
+Once a new image is pushed to Docker Hub:
+
+1. **ArgoCD Image Updater** detects the new tag and commits the updated image reference to git
+2. **ArgoCD** detects the git change and automatically syncs the updated manifests to the cluster
+
+Rollbacks are handled by reverting a git commit — ArgoCD syncs the revert automatically.
 
 ### Jenkins Prerequisites
 
@@ -119,6 +135,24 @@ The Jenkinsfile defines a 4-stage pipeline using Kubernetes pod agents:
 
 ```bash
 kubectl apply -f k8s/admin/jenkins-rbac.yaml
+```
+
+### ArgoCD Prerequisites
+
+- ArgoCD and ArgoCD Image Updater installed in the `argocd` namespace
+- Git credentials secret created in the cluster:
+
+```bash
+kubectl create secret generic git-creds \
+  --from-literal=username=<github-username> \
+  --from-literal=password=<github-token> \
+  -n argocd
+```
+
+- ArgoCD Application applied:
+
+```bash
+kubectl apply -f k8s/argocd-app.yaml
 ```
 
 ## Kubernetes Deployment
