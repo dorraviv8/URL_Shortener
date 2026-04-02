@@ -7,7 +7,6 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: app=dorraviv/url-shortener-platform
     argocd-image-updater.argoproj.io/app.update-strategy: latest
     argocd-image-updater.argoproj.io/write-back-method: git
-    argocd-image-updater.argoproj.io/write-back-target: "kustomization"
     argocd-image-updater.argoproj.io/git-branch: main
     argocd-image-updater.argoproj.io/git-credentials-secret: git-creds
 spec:
