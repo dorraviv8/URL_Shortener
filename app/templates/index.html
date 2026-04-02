@@ -1,83 +1,200 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <title>URL Shortener</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
         }
 
         .card {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 400px;
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 50px 45px;
+            width: 480px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .logo {
             text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 1.9rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 1rem;
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
+            padding: 14px 16px 14px 44px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.35);
+        }
+
+        input[type="text"]:focus {
+            border-color: rgba(130, 100, 255, 0.7);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 3px rgba(130, 100, 255, 0.15);
         }
 
         button {
-            background-color: #4CAF50;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 600;
             border: none;
-            border-radius: 5px;
+            border-radius: 12px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.3px;
         }
 
         button:hover {
-            background-color: #45a049;
+            background: linear-gradient(135deg, #7b93ff, #8b5fbf);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         .result {
-            margin-top: 20px;
+            margin-top: 24px;
+            padding: 18px;
+            background: rgba(102, 234, 139, 0.1);
+            border: 1px solid rgba(102, 234, 139, 0.25);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .result p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.82rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .result a {
+            color: #a0f0b8;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
             word-break: break-all;
+            transition: color 0.2s;
+        }
+
+        .result a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        .copy-hint {
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.78rem;
+            margin-top: 8px;
         }
 
         .error {
-            margin-top: 20px;
-            color: #c0392b;
-            background-color: #fdecea;
-            border: 1px solid #e74c3c;
-            border-radius: 5px;
-            padding: 10px;
+            margin-top: 24px;
+            padding: 16px;
+            background: rgba(234, 102, 102, 0.1);
+            border: 1px solid rgba(234, 102, 102, 0.3);
+            border-radius: 12px;
+            color: #ffaaaa;
+            font-size: 0.9rem;
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>URL Shortener</h2>
+        <div class="logo">
+            <div class="logo-icon">🔗</div>
+        </div>
+        <h1>URL Shortener</h1>
+        <p class="subtitle">Paste a long URL and get a short one instantly</p>
+
         <form method="post" action="/shorten-ui">
-            <input type="text" name="url" placeholder="Enter URL..." required>
-            <button type="submit">Shorten</button>
+            <div class="input-wrapper">
+                <span class="input-icon">🌐</span>
+                <input type="text" name="url" placeholder="https://example.com/very/long/url..." required>
+            </div>
+            <button type="submit">Shorten URL</button>
         </form>
 
         {% if error %}
         <div class="error">
-            <strong>Error:</strong> {{ error }}
+            {{ error }}
         </div>
         {% endif %}
 
         {% if short_url %}
         <div class="result">
-            <p>Your short URL:</p>
-            <a href="{{ short_url }}">{{ short_url }}</a>
+            <p>Your short URL</p>
+            <a href="{{ short_url }}" target="_blank">{{ short_url }}</a>
+            <p class="copy-hint">Click to open</p>
         </div>
         {% endif %}
     </div>
 </body>
 </html>
-
