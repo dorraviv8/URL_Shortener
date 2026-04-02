@@ -1,4 +1,4 @@
-# URL Shortener Platform
+# URL Shortener Platform.
 
 A production-ready URL shortening service built with FastAPI, PostgreSQL, and deployed on Kubernetes with a full CI/CD pipeline using Jenkins and ArgoCD.
 
