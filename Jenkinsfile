@@ -49,6 +49,13 @@ spec:
     stage('Checkout') {
       steps {
         checkout scm
+        script {
+          def commitMsg = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+          if (commitMsg.contains('[skip ci]')) {
+            currentBuild.result = 'NOT_BUILT'
+            error('Skipping: manifest-only commit')
+          }
+        }
       }
     }
 
@@ -79,11 +86,27 @@ spec:
       }
     }
 
+    stage('Update Manifest') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+          sh '''
+            git config user.email "jenkins@ci"
+            git config user.name "Jenkins"
+            git checkout -B main
+            sed -i "s|image: dorraviv/url-shortener-platform:.*|image: dorraviv/url-shortener-platform:${TAG}|" k8s/app-deployment.yaml
+            git add k8s/app-deployment.yaml
+            git commit -m "ci: update image to ${TAG} [skip ci]"
+            git push https://${GIT_USER}:${GIT_TOKEN}@github.com/dorraviv8/URL_Shortener.git HEAD:main
+          '''
+        }
+      }
+    }
+
   }
 
   post {
     success {
-      echo "Pipeline succeeded: ${IMAGE}:${TAG} — ArgoCD will handle deployment"
+      echo "Pipeline succeeded: ${IMAGE}:${TAG} — ArgoCD will sync from git"
     }
     failure {
       echo "Pipeline failed on branch ${env.BRANCH_NAME}, build #${env.BUILD_NUMBER}"
