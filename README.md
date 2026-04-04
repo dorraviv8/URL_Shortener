@@ -106,57 +106,6 @@ pytest -v
 
 Tests use SQLite (`DATABASE_URL=sqlite:///./test.db` set in `conftest.py`) — no Postgres needed. Covers: liveness, readiness, home page, URL shortening, redirect (307), 404, and metrics endpoints.
 
-## Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          DEVELOPER                                       │
-│                        git push                                          │
-└──────────────────────────────┬──────────────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         GITHUB REPOSITORY                                │
-│                    github.com/dorraviv8/URL_Shortener                    │
-└───────────┬─────────────────────────────────────────┬────────────────────┘
-            │ webhook                                  │ polls every 3 min
-            ▼                                          ▼
-┌───────────────────────┐                  ┌──────────────────────────────┐
-│      JENKINS (CI)     │                  │        ARGOCD (CD)           │
-│                       │                  │                              │
-│  1. Checkout          │                  │  Detects manifest change     │
-│  2. flake8 + pytest   │                  │  → Rolling update            │
-│  3. Kaniko build      │                  │  → New pods up               │
-│  4. Push to DockerHub │                  │  → Old pods terminated       │
-│  5. Update manifest   │──── git commit ──▶                              │
-│     [skip ci]         │                  └──────────────┬───────────────┘
-└───────────┬───────────┘                                 │ kubectl apply
-            │ docker push                                 ▼
-            ▼                              ┌──────────────────────────────┐
-┌───────────────────────┐                  │     KUBERNETES CLUSTER       │
-│   DOCKER HUB          │                  │                              │
-│  :65, :66, :latest    │                  │  ┌─────────────────────────┐ │
-└───────────────────────┘                  │  │   url-shortener pods    │ │
-                                           │  │   (HPA: 2–7 replicas)   │ │
-                                           │  └────────────┬────────────┘ │
-                                           │               │              │
-                                           │  ┌────────────▼────────────┐ │
-                                           │  │   PostgreSQL pod        │ │
-                                           │  │   (1Gi PVC)             │ │
-                                           │  └─────────────────────────┘ │
-                                           │                              │
-                                           │  ┌─────────────────────────┐ │
-                                           │  │   Prometheus            │ │
-                                           │  │   scrapes /metrics      │ │
-                                           │  └────────────┬────────────┘ │
-                                           │               │              │
-                                           │  ┌────────────▼────────────┐ │
-                                           │  │   Grafana Dashboard     │ │
-                                           │  │   latency, errors, pods │ │
-                                           │  └─────────────────────────┘ │
-                                           └──────────────────────────────┘
-```
-
 ## CI/CD Pipeline
 
 The project uses a split CI/CD model — Jenkins handles CI, ArgoCD handles CD.
