@@ -127,7 +127,10 @@ def shorten_ui(request: Request, url: str = Form(...), custom_code: str = Form(d
             return templates.TemplateResponse(
                 request,
                 "index.html",
-                {"error": "Alias may only contain letters, numbers, hyphens and underscores.", "base_url": base_url},
+                {
+                    "error": "Alias may only contain letters, numbers, hyphens and underscores.",
+                    "base_url": base_url,
+                },
                 status_code=400,
             )
         if len(custom_code) > 50:
@@ -149,7 +152,10 @@ def shorten_ui(request: Request, url: str = Form(...), custom_code: str = Form(d
                 return templates.TemplateResponse(
                     request,
                     "index.html",
-                    {"error": f"The alias '{custom_code}' is already taken. Please choose another.", "base_url": base_url},
+                    {
+                        "error": f"The alias '{custom_code}' is already taken. Please choose another.",
+                        "base_url": base_url,
+                    },
                     status_code=409,
                 )
             code = custom_code
