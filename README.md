@@ -52,12 +52,15 @@ A production-ready URL shortening service built with FastAPI and PostgreSQL, dep
 │   ├── postgres-pvc.yaml                 # 1Gi PVC for postgres data
 │   ├── url-shortener-servicemonitor.yaml # Prometheus scrape config
 │   ├── argocd-app.yaml                   # ArgoCD Application definition
-│   ├── grafana-dashboard.json            # Grafana dashboard as code
 │   └── admin/
 │       └── jenkins-rbac.yaml             # ClusterRole for Jenkins SA (apply once)
+├── grafana/
+│   └── grafana-dashboard.json            # Grafana dashboard as code
 ├── Dockerfile
 ├── docker-compose.yml
 ├── Jenkinsfile
+├── secret.example.yaml                   # Secret template (copy to k8s/secret.yaml, never commit)
+├── pytest.ini
 ├── requirements.txt
 └── requirements-dev.txt
 ```
@@ -192,17 +195,19 @@ The app exposes Prometheus metrics at `/metrics`:
 | `http_requests_total` | Counter | Requests by method / path / status |
 | `http_request_duration_seconds` | Histogram | Request latency |
 
-A Grafana dashboard is included at `k8s/grafana-dashboard.json` covering URL activity, P95 latency, success rate, error rate, and pod count.
+A Grafana dashboard is included at `grafana/grafana-dashboard.json` covering URL activity, P95 latency, success rate, error rate, and pod count.
 
-To import: Grafana → Dashboards → Import → upload `grafana-dashboard.json`.
+To import: Grafana → Dashboards → Import → upload `grafana/grafana-dashboard.json`.
 
 ## Secrets Management
 
-`k8s/secret.yaml` is gitignored — credentials are never committed to the repository. The `db-secret` in the cluster is annotated with `argocd.argoproj.io/sync-options=Prune=false` so ArgoCD never deletes it during sync.
-
-If the secret is ever lost, reapply manually:
+`k8s/secret.yaml` is gitignored — credentials are never committed to the repository. Use `secret.example.yaml` as a template:
 
 ```bash
+cp secret.example.yaml k8s/secret.yaml
+# Fill in your credentials in k8s/secret.yaml, then:
 kubectl apply -f k8s/secret.yaml
 kubectl annotate secret db-secret argocd.argoproj.io/sync-options=Prune=false -n default
 ```
+
+The `db-secret` is annotated with `argocd.argoproj.io/sync-options=Prune=false` so ArgoCD never deletes it during sync.
