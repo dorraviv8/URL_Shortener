@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.responses import RedirectResponse, HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
+import re
 import time
 import secrets
 from pathlib import Path
@@ -87,7 +88,8 @@ async def metrics_middleware(request: Request, call_next):
 # -------------------------
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse(request, "index.html")
+    base_url = str(request.base_url).rstrip("/")
+    return templates.TemplateResponse(request, "index.html", {"base_url": base_url})
 
 
 def _validate_url(url: str) -> str | None:
@@ -107,16 +109,34 @@ def _validate_url(url: str) -> str | None:
 # 2️⃣ Shorten via UI Form
 # -------------------------
 @app.post("/shorten-ui", response_class=HTMLResponse)
-def shorten_ui(request: Request, url: str = Form(...)):
+def shorten_ui(request: Request, url: str = Form(...), custom_code: str = Form(default="")):
+
+    base_url = str(request.base_url).rstrip("/")
 
     error = _validate_url(url)
     if error:
         return templates.TemplateResponse(
             request,
             "index.html",
-            {"error": error},
+            {"error": error, "base_url": base_url},
             status_code=400,
         )
+
+    if custom_code:
+        if not re.match(r'^[a-zA-Z0-9_-]+$', custom_code):
+            return templates.TemplateResponse(
+                request,
+                "index.html",
+                {"error": "Alias may only contain letters, numbers, hyphens and underscores.", "base_url": base_url},
+                status_code=400,
+            )
+        if len(custom_code) > 50:
+            return templates.TemplateResponse(
+                request,
+                "index.html",
+                {"error": "Alias must be 50 characters or fewer.", "base_url": base_url},
+                status_code=400,
+            )
 
     if not SessionLocal:
         raise HTTPException(status_code=500, detail="Database not configured")
@@ -124,23 +144,31 @@ def shorten_ui(request: Request, url: str = Form(...)):
     db = SessionLocal()
 
     try:
-        code = secrets.token_urlsafe(5)
-
-        while db.query(URL).filter(URL.code == code).first():
+        if custom_code:
+            if db.query(URL).filter(URL.code == custom_code).first():
+                return templates.TemplateResponse(
+                    request,
+                    "index.html",
+                    {"error": f"The alias '{custom_code}' is already taken. Please choose another.", "base_url": base_url},
+                    status_code=409,
+                )
+            code = custom_code
+        else:
             code = secrets.token_urlsafe(5)
+            while db.query(URL).filter(URL.code == code).first():
+                code = secrets.token_urlsafe(5)
 
         db.add(URL(code=code, original_url=url))
         db.commit()
 
         URL_SHORTENED_TOTAL.inc()
 
-        base_url = str(request.base_url).rstrip("/")
         short_url = f"{base_url}/{code}"
 
         return templates.TemplateResponse(
             request,
             "index.html",
-            {"short_url": short_url}
+            {"short_url": short_url, "base_url": base_url}
         )
 
     finally:

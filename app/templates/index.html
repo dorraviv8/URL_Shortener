@@ -154,6 +154,63 @@
             margin-top: 8px;
         }
 
+        .result-link-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            width: auto;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .copy-btn.copied {
+            background: rgba(102, 234, 139, 0.2);
+            border-color: rgba(102, 234, 139, 0.4);
+            color: #a0f0b8;
+        }
+
+        .alias-label {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.82rem;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .alias-prefix {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.82rem;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        input.alias-input {
+            padding-left: 120px;
+        }
+
         .error {
             margin-top: 24px;
             padding: 16px;
@@ -179,6 +236,11 @@
                 <span class="input-icon">🌐</span>
                 <input type="text" name="url" placeholder="https://example.com/very/long/url..." required>
             </div>
+            <label class="alias-label">Custom alias <span style="opacity:0.5">(optional)</span></label>
+            <div class="input-wrapper">
+                <span class="alias-prefix">{{ base_url }}/</span>
+                <input class="alias-input" type="text" name="custom_code" placeholder="my-link" pattern="[a-zA-Z0-9_-]+" title="Letters, numbers, hyphens and underscores only">
+            </div>
             <button type="submit">Shorten URL</button>
         </form>
 
@@ -191,10 +253,30 @@
         {% if short_url %}
         <div class="result">
             <p>Your short URL</p>
-            <a href="{{ short_url }}" target="_blank">{{ short_url }}</a>
-            <p class="copy-hint">Click to open</p>
+            <div class="result-link-row">
+                <a id="short-url-link" href="{{ short_url }}" target="_blank">{{ short_url }}</a>
+                <button type="button" class="copy-btn" onclick="copyUrl()">Copy</button>
+            </div>
+            <p class="copy-hint">Click the link to open</p>
         </div>
         {% endif %}
     </div>
+
+    {% if short_url %}
+    <script>
+        function copyUrl() {
+            const url = document.getElementById('short-url-link').href;
+            navigator.clipboard.writeText(url).then(function() {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(function() {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+    {% endif %}
 </body>
 </html>
