@@ -153,7 +153,9 @@ def shorten_ui(request: Request, url: str = Form(...), custom_code: str = Form(d
                     request,
                     "index.html",
                     {
-                        "error": f"The alias '{custom_code}' is already taken. Please choose another.",
+                        "error": (
+                            f"The alias '{custom_code}' is already taken. Please choose another."
+                        ),
                         "base_url": base_url,
                     },
                     status_code=409,
