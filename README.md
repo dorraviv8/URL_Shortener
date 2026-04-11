@@ -4,7 +4,7 @@ A production-ready URL shortening service built with FastAPI and PostgreSQL, dep
 
 ## Features
 
-- Shorten long URLs into 5-character codes via a web UI
+- Shorten long URLs into 5-character codes via a web UI, with optional custom alias support
 - HTTP 307 redirects from short codes to original URLs
 - URL validation (http/https only)
 - Liveness and readiness health check endpoints
